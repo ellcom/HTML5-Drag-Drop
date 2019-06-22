@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Draggable Prototype</title>
+
+</head>
+<body>
+
+<h1>HTML5 Draggable UI LI's</h1>
+<p><i>Preface: I'd advise not using this API for several reasons, mostly because it wont provide an experience to mobile users. That being said.</i></p>
+<p>The HTML5 Drag and Drop API (<a href="https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API" target="_blank">MDN</a>, <a href="https://html.spec.whatwg.org/multipage/dnd.html" target="_blank">WhatWG</a>)
+    allows you to click on an item, drag it and drop it elsewhere. With this, you could create a user interface to allow lists
+to be ordered.</p>
+
+<p>To begin add the attribute "draggable" to the elements <code>&lt;li draggable="true"&gt;AAAAA&lt;/li&gt;</code>.</p>
+
+<p>Seven JavaScript events are now available:</p>
+
+<ol>
+    <li>dragstart</li>
+    <li>dragend</li>
+    <li>dragover</li>
+    <li>dragleave</li>
+    <li>dragenter</li>
+    <li>drop</li>
+    <li>drag</li>
+</ol>
+
+<p>Read in detail about drop <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#drop">here</a>, essentially, unless you <code>preventDefault</code> on the <code>dragover</code> event handler, the <code>drop</code> event wont be triggered.</p>
+
+<h2>Demo</h2>
+<ul>
+    <li draggable="true">AAAAA</li>
+    <li draggable="true">BBBBB</li>
+    <li draggable="true">CCCCC</li>
+    <li draggable="true">DDDDD</li>
+    <li draggable="true">EEEEE</li>
+</ul>
+
+<script>
+    
+    var lis = document.querySelectorAll('ul li');
+    Array.prototype.forEach.call(lis, function(li) {
+        li.addEventListener('dragstart', handleDragStart);
+        li.addEventListener('dragend', handleDragEnd);
+        li.addEventListener('dragover', handleDragOver);
+
+        // Kept for completeness
+        //li.addEventListener('dragleave', handleDragLeave); #4
+        //li.addEventListener('dragenter', handleDragEnter); #5
+        //li.addEventListener('drop', handleDrop); #6
+        //li.addEventListener('drag', handleDrag); #7
+    });
+
+    var dragged;
+    var over;
+    var draggedIndex;
+
+    var spacer = document.createElement('li');
+    spacer.classList.add('placeholder');
+    spacer.draggable = true;
+
+    spacer.addEventListener('dragover',function (e) {
+        // Needed for the drop event to be triggered.
+        e.preventDefault();
+    });
+
+    spacer.addEventListener('drop',function (e) {
+        // Prevents the browser for handling the drop.
+        e.preventDefault();
+    });
+
+    function handleDragStart() {
+
+        dragged = this;
+        draggedIndex = indexInParent(this);
+        this.style.opacity = .4;
+    }
+
+    function handleDragEnd(e) {
+
+        if( dragged && spacer.parentElement )
+        {
+            this.parentNode.insertBefore(dragged, spacer);
+        }
+
+        spacer.remove();
+        this.style.opacity = 1;
+        over = null;
+        dragged = null;
+    }
+
+    function handleDragOver(e) {
+
+        // Needed for the drop event to be triggered.
+        e.preventDefault();
+
+        e.dataTransfer.dropEffect = 'move';
+
+        if( this === dragged )
+        {
+            spacer.remove();
+            over = null;
+            return;
+        }
+        if( this === over || this === spacer )
+        {
+            return;
+        }
+
+        // Move the spacer.
+
+        over = this;
+
+        // This allows you to move the dragged item to any position in the list,
+        // moving up inserts the element before, down insert after.
+        if(  indexInParent(this) < draggedIndex )
+        {
+            this.parentNode.insertBefore(spacer, this);
+        }
+        else {
+            this.parentNode.insertBefore(spacer, this.nextSibling);
+        }
+
+    }
+    /*
+    function handleDragEnter() {
+        console.log('Enter')
+    }
+    function handleDragLeave() {
+        console.log('Leave')
+    }
+
+    function handleDrag() {
+        console.log('Drag')
+    }
+
+    function handleDrop() {
+        console.log('Drop')
+    }*/
+
+    function indexInParent( node )
+    {
+        return Array.prototype.indexOf.call(node.parentNode.childNodes, node);
+    }
+</script>
+
+<style>
+
+    p {
+        max-width: 800px;
+    }
+
+    ul {
+        list-style: none;
+        width: 200px;
+    }
+    ul li {
+        padding: 10px;
+        border: 1px solid black;
+        margin: 5px 0;
+        display: block;
+    }
+
+    ul li.placeholder {
+        min-height: 1rem;
+        border-style: dashed;
+    }
+</style>
