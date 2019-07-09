@@ -148,7 +148,7 @@ to be ordered.</p>
 
     function indexInParent( node )
     {
-        return Array.prototype.indexOf.call(node.parentNode.childNodes, node);
+        return Array.prototype.indexOf.call(node.parentElement.querySelectorAll('li:not(.placeholder)'), node);
     }
 </script>
 
